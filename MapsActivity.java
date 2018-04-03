@@ -19,6 +19,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -88,7 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .title("Cabo Cantina")
                 .snippet(CaboCantina.mondayDeals.get(0).toString()));
 
-        pushToFireStone(CaboCantina);
+        //pushToFireStone(CaboCantina);
         queryFirebase();
     }
 
@@ -126,13 +127,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     public void queryFirebase() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference docRef = db.collection("bars").document("Cabo Cantina");
-        docRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                Bar bar = documentSnapshot.toObject(Bar.class);
-            }
-        });
+        CollectionReference barsRef = db.collection("deal");
+        barsRef.whereGreaterThanOrEqualTo("start time", 1600);
+        barsRef.whereLessThanOrEqualTo("start time", 2000);
+        Log.i("Firestore", barsRef.toString());
+
     }
 
 
