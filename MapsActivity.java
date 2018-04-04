@@ -17,12 +17,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,7 +95,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(CaboCantina.mondayDeals.get(0).toString()));
 
         //pushToFireStone(CaboCantina);
-        queryFirebase();
+        //queryFirebase();
+
+        //getDocumentsNear(32.797842, -117.250785, 10); //near backyard
+        getDocumentsNear(35.0510224,-120.3578378, 10); // not near backyard
+
     }
 
     public void onMapSearch(View view) {
@@ -131,7 +140,68 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         barsRef.whereGreaterThanOrEqualTo("start time", 1600);
         barsRef.whereLessThanOrEqualTo("start time", 2000);
         Log.i("Firestore", barsRef.toString());
+    }
+    public void getDocumentsNear(double latitude, double longitude, double distance) {
+        double lat = 0.0144927536231884;
+        double lon = 0.0181818181818182;
 
+        double lowerLat = latitude - (lat * distance);
+        double lowerLon = longitude - (lon * distance);
+
+        double greaterLat = latitude + (lat * distance);
+        double greaterLon = longitude + (lon * distance);
+
+        GeoPoint lesserGeopoint = new GeoPoint(lowerLat, lowerLon);
+        GeoPoint greaterGeopoint = new GeoPoint(greaterLat, greaterLon);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("bars")
+                .whereGreaterThanOrEqualTo("location", lesserGeopoint)
+                .whereLessThanOrEqualTo("location", greaterGeopoint)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("Firestore", document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            Log.d("Firestore", "Error getting documents: " + task.getException());
+                        }
+                    }
+                });
+
+        /*
+        CollectionReference barsRef = db.collection("bars");
+
+        barsRef.whereGreaterThanOrEqualTo("location", lesserGeopoint);
+        barsRef.whereLessThanOrEqualTo("location", greaterGeopoint);
+
+        Log.i("Firestore","Got from locaion query " + barsRef.toString());
+
+
+        DocumentReference docRef = barsRef.document();
+
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null && document.exists()) {
+                        Log.d("Firestore", "DocumentSnapshot data: " + document.getData());
+                    } else {
+                        Log.d("Firestore", "No such document");
+                    }
+                } else {
+                    Log.d("Firestore", "get failed with ", task.getException());
+                }
+            }
+        });
+
+        //Query query = docRef.whereField("location", isGreaterThan: lesserGeopoint).whereField("location", isLessThan: greaterGeopoint)
+        */
     }
 
 
