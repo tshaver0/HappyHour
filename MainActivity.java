@@ -34,58 +34,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        Intent myIntent = new Intent(this, MapsActivity.class);
         switch (v.getId()) {
             case R.id.monday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "monday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
-            case R.id.monday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
-                myIntent.putExtra("day", "monday"); //Optional parameters
-                this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
             case R.id.tuesday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "tuesday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
+
             case R.id.wednesday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "wednesday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
+
+
             case R.id.thursday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "thursday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
             case R.id.friday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "friday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
+
+
             case R.id.saturday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "saturday"); //Optional parameters
                 this.startActivity(myIntent);
-        }
 
-        switch (v.getId()) {
+
+
             case R.id.sunday:
-                Intent myIntent = new Intent(this, MapsActivity.class);
                 myIntent.putExtra("day", "sunday"); //Optional parameters
                 this.startActivity(myIntent);
         }

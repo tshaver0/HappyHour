@@ -13,6 +13,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -26,6 +27,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -67,8 +69,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         LatLng backyard = new LatLng(32.797143, -117.254139);
-        mMap.addMarker(new MarkerOptions().position(backyard).title("Marker at Backyard??"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng(backyard));
         float zoomLevel = 16.0f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(backyard, zoomLevel));
         CustomInfoWindowAdapter adapter = new CustomInfoWindowAdapter(MapsActivity.this);
@@ -78,6 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void loadLocations() {
+        /*
         LatLng cabo = new LatLng(32.797842, -117.250785);
         Bar CaboCantina = new Bar("Cabo Cantina", cabo, "Mexican Themed Bar with good drink deals",
                 "1050 Garnet Ave", "San Diego", "CA", "92109");
@@ -89,51 +90,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         monday2for1.setDiscrption("2 for 1 drinks");
         CaboCantina.addMondayDeal(monday2for1);
 
+
         Marker CaboMarkerr = mMap.addMarker(new MarkerOptions()
                 .position(CaboCantina.getLocation())
                 .title("Cabo Cantina")
                 .snippet(CaboCantina.mondayDeals.get(0).toString()));
+        */
 
         //pushToFireStone(CaboCantina);
         //queryFirebase();
 
-        //getDocumentsNear(32.797842, -117.250785, 10); //near backyard
-        getDocumentsNear(35.0510224,-120.3578378, 10); // not near backyard
+        Task<QuerySnapshot> withinDist = getDocumentsNear(32.797842, -117.250785, 10); //near backyard
+
+        //getDocumentsNear(35.0510224,-120.3578378, 10); // not near backyard
 
     }
 
-    public void onMapSearch(View view) {
-        EditText locationSearch = (EditText) findViewById(R.id.editText);
-        String location = locationSearch.getText().toString();
-        Log.d("Button push", "Begining search");
-
-        if (location != null || !location.equals("")) {
-            Log.d("Button push", "Searching for " + location);
-        }
-    }
-
-    public List<Bar> searchFor(String location, List<Bar> barList) {
-        List<Bar> toReturn = new ArrayList<Bar>();
-
-        for(Bar current : barList) {
-            if(current.tags.contains(location)) {
-                toReturn.add(current);
-            }
-        }
-
-        return toReturn;
-    }
-
-    public void pushToFireStone(Bar toPush) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        Map<String, Object> docData = new HashMap<>();
-        docData.put("name", "Los Angeles");
-        docData.put("state", "CA");
-        docData.put("country", "USA");
-// Add a new document (asynchronously) in collection "cities" with id "LA"
-        db.collection("cities").document("LA").set(docData);
-    }
     public void queryFirebase() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference barsRef = db.collection("deal");
@@ -141,7 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         barsRef.whereLessThanOrEqualTo("start time", 2000);
         Log.i("Firestore", barsRef.toString());
     }
-    public void getDocumentsNear(double latitude, double longitude, double distance) {
+
+    public Task<QuerySnapshot> getDocumentsNear(double latitude, double longitude, double distance) {
         double lat = 0.0144927536231884;
         double lon = 0.0181818181818182;
 
@@ -156,7 +129,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        db.collection("bars")
+        Task<QuerySnapshot> withInDistance = null;
+
+        withInDistance = db.collection("bars")
                 .whereGreaterThanOrEqualTo("location", lesserGeopoint)
                 .whereLessThanOrEqualTo("location", greaterGeopoint)
                 .get()
@@ -166,43 +141,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d("Firestore", document.getId() + " => " + document.getData());
+                                createMarker(document.getGeoPoint("location").getLatitude(),
+                                        document.getGeoPoint("location").getLongitude(),
+                                        document.get("name").toString(),
+                                        document.get("description").toString());
+                                Log.d("Firestore", document.getId() + " done");
                             }
                         } else {
                             Log.d("Firestore", "Error getting documents: " + task.getException());
                         }
                     }
                 });
-
-        /*
-        CollectionReference barsRef = db.collection("bars");
-
-        barsRef.whereGreaterThanOrEqualTo("location", lesserGeopoint);
-        barsRef.whereLessThanOrEqualTo("location", greaterGeopoint);
-
-        Log.i("Firestore","Got from locaion query " + barsRef.toString());
-
-
-        DocumentReference docRef = barsRef.document();
-
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document != null && document.exists()) {
-                        Log.d("Firestore", "DocumentSnapshot data: " + document.getData());
-                    } else {
-                        Log.d("Firestore", "No such document");
-                    }
-                } else {
-                    Log.d("Firestore", "get failed with ", task.getException());
-                }
-            }
-        });
-
-        //Query query = docRef.whereField("location", isGreaterThan: lesserGeopoint).whereField("location", isLessThan: greaterGeopoint)
-        */
+        return withInDistance;
     }
 
+    protected Marker createMarker(double latitude, double longitude, String title, String snippet) {
+
+        return mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(latitude, longitude))
+                .anchor(0.5f, 0.5f)
+                .title(title)
+                .snippet(snippet));
+    }
 
 }
