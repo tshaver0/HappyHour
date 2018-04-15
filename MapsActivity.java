@@ -43,6 +43,8 @@ import static android.R.attr.data;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    FirebaseFirestore db;
+    String dayFromButtonPush;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        db = FirebaseFirestore.getInstance();
+
+
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                dayFromButtonPush = null;
+            } else {
+                dayFromButtonPush = extras.getString("day");
+            }
+        } else {
+            dayFromButtonPush = (String) savedInstanceState.getSerializable("day");
+        }
     }
 
 
@@ -73,7 +88,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(backyard, zoomLevel));
         CustomInfoWindowAdapter adapter = new CustomInfoWindowAdapter(MapsActivity.this);
         mMap.setInfoWindowAdapter(adapter);
-
         loadLocations();
     }
 
@@ -100,14 +114,80 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //pushToFireStone(CaboCantina);
         //queryFirebase();
 
-        Task<QuerySnapshot> withinDist = getDocumentsNear(32.797842, -117.250785, 10); //near backyard
-
+        //Task<QuerySnapshot> withinDist = getDocumentsNear(32.797842, -117.250785, 10); //near backyard
+        Log.d("Firestore", "Searching for " + dayFromButtonPush);
+        Query dayQuery = queryByDay(dayFromButtonPush);
+        addMarkersFromQuery(dayQuery);
         //getDocumentsNear(35.0510224,-120.3578378, 10); // not near backyard
 
     }
 
+    public Query queryByDay(String passedDay) {
+        // Create a reference to the cities collection
+        CollectionReference queryByDay = db.collection("deal");
+        passedDay.toLowerCase();
+        Query query = queryByDay.whereEqualTo("day of week", passedDay);
+        return query;
+    }
+
+    public Query queryByTime(int time) {
+        // Create a reference to the cities collection
+        CollectionReference queryByTime = db.collection("deal");
+        Query query = queryByTime.whereGreaterThanOrEqualTo("start time", time)
+                .whereLessThan("end time", time);
+        return query;
+    }
+
+    public Query queryByTimeandDay(int time, String passedDay) {
+        // Create a reference to the cities collection
+        passedDay.toLowerCase();
+        CollectionReference queryByTime = db.collection("deal");
+        Query query = queryByTime.whereGreaterThanOrEqualTo("start time", time)
+                .whereLessThan("end time", time)
+                .whereEqualTo("day of week", passedDay);
+        return query;
+    }
+
+    public void addMarkersFromQuery(Query passedQuery) {
+        Task<QuerySnapshot> taskQuery = passedQuery.get();
+        taskQuery.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (final QueryDocumentSnapshot document : task.getResult()) {
+                        DocumentReference barRef = (DocumentReference) document.get("bar");
+                        final Task<DocumentSnapshot> barRefTask = barRef.get();
+                        barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                DocumentSnapshot docSnap = barRefTask.getResult();
+                                createMarker(docSnap.getGeoPoint("location").getLatitude(),
+                                        docSnap.getGeoPoint("location").getLongitude(),
+                                        docSnap.get("name").toString(),
+                                        docSnap.get("description").toString() +
+                                                System.getProperty("line.separator") +
+                                                document.get("day of week").toString() +
+                                                document.get("start time").toString() +
+                                                document.get("end time").toString() +
+                                                document.get("desc").toString());
+                            }
+                        });
+
+
+                        }
+
+                    }
+                 else {
+                    Log.d("Firestore", "Error getting documents: " + task.getException());
+                }
+            }
+        });
+    }
+
+
+
+
     public void queryFirebase() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         CollectionReference barsRef = db.collection("deal");
         barsRef.whereGreaterThanOrEqualTo("start time", 1600);
         barsRef.whereLessThanOrEqualTo("start time", 2000);
@@ -126,8 +206,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         GeoPoint lesserGeopoint = new GeoPoint(lowerLat, lowerLon);
         GeoPoint greaterGeopoint = new GeoPoint(greaterLat, greaterLon);
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Task<QuerySnapshot> withInDistance = null;
 

@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 this.startActivity(myIntent);
 
 
-
             case R.id.thursday:
                 myIntent.putExtra("day", "thursday"); //Optional parameters
                 this.startActivity(myIntent);
