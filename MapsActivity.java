@@ -156,21 +156,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (task.isSuccessful()) {
                     for (final QueryDocumentSnapshot document : task.getResult()) {
                         DocumentReference barRef = (DocumentReference) document.get("bar");
-                        final Task<DocumentSnapshot> barRefTask = barRef.get();
+                            final Task<DocumentSnapshot> barRefTask = barRef.get();
                         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                DocumentSnapshot docSnap = barRefTask.getResult();
-                                createMarker(docSnap.getGeoPoint("location").getLatitude(),
-                                        docSnap.getGeoPoint("location").getLongitude(),
-                                        docSnap.get("name").toString(),
-                                        docSnap.get("description").toString() +
-                                                System.getProperty("line.separator") +
-                                                document.get("day of week").toString() +
-                                                document.get("start time").toString() +
-                                                document.get("end time").toString() +
-                                                document.get("desc").toString());
-                            }
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    DocumentSnapshot docSnap = barRefTask.getResult();
+                                    createMarker(docSnap.getGeoPoint("location").getLatitude(),
+                                            docSnap.getGeoPoint("location").getLongitude(),
+                                            docSnap.get("name").toString(),
+                                            docSnap.get("description").toString() +
+                                                    System.getProperty("line.separator") +
+                                                    document.get("day of week").toString() +
+                                                    document.get("start time").toString() +
+                                                    document.get("end time").toString() +
+                                                    document.get("desc").toString());
+                                }
                         });
 
 
