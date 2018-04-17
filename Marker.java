@@ -7,12 +7,12 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 public class Marker {
-    LatLng posistion;
+    LatLng position;
     String title;
     String snippet;
 
     public Marker(LatLng passedLatLng, String passedTitle, String passedSnippet){
-        posistion = passedLatLng;
+        position = passedLatLng;
         title = passedTitle;
         snippet = passedSnippet;
     }
@@ -33,12 +33,12 @@ public class Marker {
         this.snippet = snippet;
     }
 
-    public LatLng getPosistion() {
-        return posistion;
+    public LatLng getPosition() {
+        return position;
     }
 
-    public void setPosistion(LatLng posistion) {
-        this.posistion = posistion;
+    public void setPosition(LatLng position) {
+        this.position = position;
     }
 
     public void addToSnippet(String toAdd){

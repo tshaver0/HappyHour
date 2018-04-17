@@ -33,7 +33,7 @@ public class DocumentCompiler {
                 documentSnapshot.get("name").toString(), documentSnapshot.get("description").toString());
         markers.put(name, toAdd); //TODO might cause issues as name might not be unique
     }
-    public void addDeal(DocumentSnapshot documentSnapshot){
+    public void addDeal(final DocumentSnapshot documentSnapshot){
         DocumentReference barRef = (DocumentReference) documentSnapshot.get("bar");
         final Task<DocumentSnapshot> barRefTask = barRef.get();
         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -43,11 +43,18 @@ public class DocumentCompiler {
                 if(markers.containsKey(docSnap.getString("name"))) {
                     Marker toEdit  = markers.get(docSnap.getString("name"));
                     //TODO edit marker to include new deal and replace in HashMap
+                    dealToString parse = new dealToString();
+                    toEdit.addToSnippet( System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
+                    markers.remove(docSnap.getString("name"));
+                    markers.put(docSnap.getString("name"), toEdit);
                 }
-
-                //TODO Add new marker
-
+                Marker toAdd = new Marker(new LatLng(docSnap.getGeoPoint("location").getLatitude(), docSnap.getGeoPoint("location").getLongitude()),
+                        docSnap.get("name").toString(), docSnap.get("description").toString());
+                dealToString parse = new dealToString();
+                toAdd.addToSnippet(System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
+                markers.put(docSnap.getString("name"), toAdd);
             }
         });
     }
+    public HashMap<String, Marker> getMarkers(){return this.markers;}
 }

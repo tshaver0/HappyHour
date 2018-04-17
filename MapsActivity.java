@@ -34,6 +34,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     FirebaseFirestore db;
     String dayFromButtonPush;
+    final DocumentCompiler addAll = new DocumentCompiler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,23 +158,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (task.isSuccessful()) {
                     for (final QueryDocumentSnapshot document : task.getResult()) {
                         DocumentReference barRef = (DocumentReference) document.get("bar");
-                            final Task<DocumentSnapshot> barRefTask = barRef.get();
+                        final Task<DocumentSnapshot> barRefTask = barRef.get();
                         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
+                            @Override
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                     DocumentSnapshot docSnap = barRefTask.getResult();
-                                    createMarker(docSnap.getGeoPoint("location").getLatitude(),
-                                            docSnap.getGeoPoint("location").getLongitude(),
-                                            docSnap.get("name").toString(),
-                                            docSnap.get("description").toString() +
-                                                    System.getProperty("line.separator") +
-                                                    document.get("day of week").toString() +
-                                                    document.get("start time").toString() +
-                                                    document.get("end time").toString() +
-                                                    document.get("desc").toString());
+                                    Log.d("Markers", "Adding docs");
+                                    addAll.addBar(docSnap);
+                                    addAll.addDeal(document);
+                                Iterator it = addAll.getMarkers().entrySet().iterator();
+                                Log.d("Markers", "addAll has " + Integer.toString(addAll.getMarkers().size()));
+                                while (it.hasNext()) {
+                                    Map.Entry pair = (Map.Entry)it.next();
+                                    com.example.tyler.happyhour.Marker add = (com.example.tyler.happyhour.Marker) pair.getValue();
+                                    mMap.addMarker(new MarkerOptions()
+                                            .position(add.getPosition())
+                                            .title(add.getTitle())
+                                            .snippet(add.getSnippet()));
+                                }
                                 }
                         });
-
 
                         }
 
@@ -182,6 +187,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
+
     }
 
 
