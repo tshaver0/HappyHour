@@ -1,8 +1,11 @@
 package com.example.tyler.happyhour;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -31,9 +34,11 @@ public class DocumentCompiler {
         }
         Marker toAdd = new Marker(new LatLng(documentSnapshot.getGeoPoint("location").getLatitude(), documentSnapshot.getGeoPoint("location").getLongitude()),
                 documentSnapshot.get("name").toString(), documentSnapshot.get("description").toString());
+        Log.d("Markers", "Made new bar marker");
         markers.put(name, toAdd); //TODO might cause issues as name might not be unique
     }
-    public void addDeal(final DocumentSnapshot documentSnapshot){
+
+    public void addDeal(final DocumentSnapshot documentSnapshot, final GoogleMap googleMap){
         DocumentReference barRef = (DocumentReference) documentSnapshot.get("bar");
         final Task<DocumentSnapshot> barRefTask = barRef.get();
         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -45,14 +50,23 @@ public class DocumentCompiler {
                     //TODO edit marker to include new deal and replace in HashMap
                     dealToString parse = new dealToString();
                     toEdit.addToSnippet( System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
+                    Log.d("Markers", "Adding string to marker: " + toEdit.getSnippet());
                     markers.remove(docSnap.getString("name"));
                     markers.put(docSnap.getString("name"), toEdit);
+                    Log.d("Markers", "Added deal to existing Marker");
+                    return;
                 }
                 Marker toAdd = new Marker(new LatLng(docSnap.getGeoPoint("location").getLatitude(), docSnap.getGeoPoint("location").getLongitude()),
                         docSnap.get("name").toString(), docSnap.get("description").toString());
+                Log.d("Markers", "Added deal to new Marker");
                 dealToString parse = new dealToString();
                 toAdd.addToSnippet(System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
+                googleMap.addMarker(new MarkerOptions()
+                        .position(toAdd.getPosition())
+                        .title(toAdd.getTitle())
+                        .snippet(toAdd.getSnippet()));
                 markers.put(docSnap.getString("name"), toAdd);
+                Log.d("Markers", "Deal has " + markers.size());
             }
         });
     }

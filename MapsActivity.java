@@ -46,7 +46,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     FirebaseFirestore db;
     String dayFromButtonPush;
-    final DocumentCompiler addAll = new DocumentCompiler();
+    DocumentCompiler addAll;
+    String day;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void loadLocations() {
+        addAll = new DocumentCompiler();
         /*
         LatLng cabo = new LatLng(32.797842, -117.250785);
         Bar CaboCantina = new Bar("Cabo Cantina", cabo, "Mexican Themed Bar with good drink deals",
@@ -120,8 +122,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("Firestore", "Searching for " + dayFromButtonPush);
         Query dayQuery = queryByDay(dayFromButtonPush);
         addMarkersFromQuery(dayQuery);
+        //addStoredMarkers();
         //getDocumentsNear(35.0510224,-120.3578378, 10); // not near backyard
-
     }
 
     public Query queryByDay(String passedDay) {
@@ -157,48 +159,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     for (final QueryDocumentSnapshot document : task.getResult()) {
-                        DocumentReference barRef = (DocumentReference) document.get("bar");
-                        final Task<DocumentSnapshot> barRefTask = barRef.get();
-                        barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    DocumentSnapshot docSnap = barRefTask.getResult();
-                                    Log.d("Markers", "Adding docs");
-                                    addAll.addBar(docSnap);
-                                    addAll.addDeal(document);
-                                Iterator it = addAll.getMarkers().entrySet().iterator();
-                                Log.d("Markers", "addAll has " + Integer.toString(addAll.getMarkers().size()));
-                                while (it.hasNext()) {
-                                    Map.Entry pair = (Map.Entry)it.next();
-                                    com.example.tyler.happyhour.Marker add = (com.example.tyler.happyhour.Marker) pair.getValue();
-                                    mMap.addMarker(new MarkerOptions()
-                                            .position(add.getPosition())
-                                            .title(add.getTitle())
-                                            .snippet(add.getSnippet()));
-                                }
-                                }
-                        });
-
+                        addAll.addDeal(document, mMap);
+                        addStoredMarkers();
                         }
-
                     }
                  else {
                     Log.d("Firestore", "Error getting documents: " + task.getException());
                 }
             }
         });
-
+        Log.d("Ending", "Returned from addMarkersFromQuery");
     }
 
-
-
-
-    public void queryFirebase() {
-        CollectionReference barsRef = db.collection("deal");
-        barsRef.whereGreaterThanOrEqualTo("start time", 1600);
-        barsRef.whereLessThanOrEqualTo("start time", 2000);
-        Log.i("Firestore", barsRef.toString());
+    public void addStoredMarkers() {
+        Iterator it = addAll.getMarkers().entrySet().iterator();
+        Log.d("Markers", "addAll has " + Integer.toString(addAll.getMarkers().size()));
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            com.example.tyler.happyhour.Marker add = (com.example.tyler.happyhour.Marker) pair.getValue();
+            mMap.addMarker(new MarkerOptions()
+                    .position(add.getPosition())
+                    .title(add.getTitle())
+                    .snippet(add.getSnippet()));
+        }
     }
+
 
     public Task<QuerySnapshot> getDocumentsNear(double latitude, double longitude, double distance) {
         double lat = 0.0144927536231884;
