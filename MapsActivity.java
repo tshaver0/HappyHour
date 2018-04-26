@@ -59,7 +59,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         db = FirebaseFirestore.getInstance();
 
-
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
             if(extras == null) {
@@ -70,6 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             dayFromButtonPush = (String) savedInstanceState.getSerializable("day");
         }
+        Log.d("New Intent", dayFromButtonPush);
     }
 
 
@@ -91,11 +91,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(backyard, zoomLevel));
         CustomInfoWindowAdapter adapter = new CustomInfoWindowAdapter(MapsActivity.this);
         mMap.setInfoWindowAdapter(adapter);
+        addAll = new DocumentCompiler(mMap);
         loadLocations();
     }
 
     public void loadLocations() {
-        addAll = new DocumentCompiler();
         /*
         LatLng cabo = new LatLng(32.797842, -117.250785);
         Bar CaboCantina = new Bar("Cabo Cantina", cabo, "Mexican Themed Bar with good drink deals",
@@ -159,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     for (final QueryDocumentSnapshot document : task.getResult()) {
-                        addAll.addDeal(document, mMap);
+                        addAll.addDeal(document);
                         addStoredMarkers();
                         }
                     }
@@ -172,6 +172,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void addStoredMarkers() {
+        /*
         Iterator it = addAll.getMarkers().entrySet().iterator();
         Log.d("Markers", "addAll has " + Integer.toString(addAll.getMarkers().size()));
         while (it.hasNext()) {
@@ -181,7 +182,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .position(add.getPosition())
                     .title(add.getTitle())
                     .snippet(add.getSnippet()));
+
         }
+        */
     }
 
 

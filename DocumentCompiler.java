@@ -22,9 +22,12 @@ import java.util.List;
 
 public class DocumentCompiler {
     private HashMap<String, Marker> markers;
+    private GoogleMap mMap;
 
-    public DocumentCompiler() {
+    public DocumentCompiler(GoogleMap passedMap) {
+
         this.markers = new HashMap<String, Marker>();
+        mMap = passedMap;
     }
 
     public void addBar(DocumentSnapshot documentSnapshot){
@@ -32,13 +35,18 @@ public class DocumentCompiler {
         if(markers.containsKey(name)){
             return;
         }
+
         Marker toAdd = new Marker(new LatLng(documentSnapshot.getGeoPoint("location").getLatitude(), documentSnapshot.getGeoPoint("location").getLongitude()),
                 documentSnapshot.get("name").toString(), documentSnapshot.get("description").toString());
+        mMap.addMarker(new MarkerOptions()
+                .position(toAdd.getPosition())
+                .title(toAdd.getTitle())
+                .snippet(toAdd.getSnippet()));
         Log.d("Markers", "Made new bar marker");
         markers.put(name, toAdd); //TODO might cause issues as name might not be unique
     }
 
-    public void addDeal(final DocumentSnapshot documentSnapshot, final GoogleMap googleMap){
+    public void addDeal(final DocumentSnapshot documentSnapshot){
         DocumentReference barRef = (DocumentReference) documentSnapshot.get("bar");
         final Task<DocumentSnapshot> barRefTask = barRef.get();
         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -53,15 +61,21 @@ public class DocumentCompiler {
                     Log.d("Markers", "Adding string to marker: " + toEdit.getSnippet());
                     markers.remove(docSnap.getString("name"));
                     markers.put(docSnap.getString("name"), toEdit);
+                    mMap.addMarker(new MarkerOptions()
+                            .position(toEdit.getPosition())
+                            .title(toEdit.getTitle())
+                            .snippet(toEdit.getSnippet()));
                     Log.d("Markers", "Added deal to existing Marker");
                     return;
                 }
+                Log.e("Markers", "Error getting " + docSnap.contains("name"));
+
                 Marker toAdd = new Marker(new LatLng(docSnap.getGeoPoint("location").getLatitude(), docSnap.getGeoPoint("location").getLongitude()),
                         docSnap.get("name").toString(), docSnap.get("description").toString());
                 Log.d("Markers", "Added deal to new Marker");
                 dealToString parse = new dealToString();
                 toAdd.addToSnippet(System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
-                googleMap.addMarker(new MarkerOptions()
+                mMap.addMarker(new MarkerOptions()
                         .position(toAdd.getPosition())
                         .title(toAdd.getTitle())
                         .snippet(toAdd.getSnippet()));
@@ -70,5 +84,4 @@ public class DocumentCompiler {
             }
         });
     }
-    public HashMap<String, Marker> getMarkers(){return this.markers;}
 }
