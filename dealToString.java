@@ -9,6 +9,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
  */
 
 public class dealToString {
+
     public String dealToString(DocumentSnapshot docSnap) {
         String toReturn = docSnap.getString("day of week");
         double startTime = docSnap.getDouble("start time");
@@ -20,40 +21,48 @@ public class dealToString {
     }
 
     public String timeToString(double time){
-        if(time > 1300 ){
-            time =- 1200;
+        if(time >= 1300 ){
             String toReturn = Double.toString(time);
-            String hours = toReturn.substring(0,2);
             String minutes = toReturn.substring(2,4);
-            if(hours.charAt(0) == '0') {
-                hours.substring(1);
+            String hours;
+            time =- 1200;
+            if(toReturn.length() == 3) {
+                hours = toReturn.substring(0, 2);
+            }
+            else {
+                hours = toReturn.substring(0, 1);
             }
             hours += ':';
-            return hours + minutes + "PM";
+            return hours + minutes + " PM";
         }
+
         if (time < 1200) {
 
             String toReturn = Double.toString(time);
             String hours, minutes;
             if(toReturn.length() == 4) {
                 hours = toReturn.substring(0, 2);
-                minutes = toReturn.substring(2, 3);
+                minutes = toReturn.substring(2, 4);
             }
-            else {
+            else if (toReturn.length() == 3){
                 hours = toReturn.substring(0, 1);
-                minutes = toReturn.substring(1, 2);
+                minutes = toReturn.substring(1, 3);
+            }
+            else  {
+                hours = "12";
+                minutes = toReturn;
             }
             Log.d("dealToString", "hours: " + hours + " minutes: " + minutes);
             if(hours.charAt(0) == '0') {
                 hours.substring(1);
             }
             hours += ':';
-            return hours + minutes + "AM";
+            return hours + minutes + " AM";
         }
         String toReturn = Double.toString(time);
         String hours = toReturn.substring(0,2);
         String minutes = toReturn.substring(2,4);
         hours += ':';
-        return hours + minutes + "PM";
+        return hours + minutes + " PM";
     }
 }

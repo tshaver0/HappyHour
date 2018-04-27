@@ -11,28 +11,25 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * Created by tyler on 4/15/2018.
  */
 
 public class DocumentCompiler {
-    private HashMap<String, Marker> markers;
+    private HashMap<String, Marker> mMarkers;
     private GoogleMap mMap;
 
     public DocumentCompiler(GoogleMap passedMap) {
 
-        this.markers = new HashMap<String, Marker>();
+        this.mMarkers = new HashMap<String, Marker>();
         mMap = passedMap;
     }
 
     public void addBar(DocumentSnapshot documentSnapshot){
         String name = documentSnapshot.get("name").toString();
-        if(markers.containsKey(name)){
+        if(mMarkers.containsKey(name)){
             return;
         }
 
@@ -43,7 +40,7 @@ public class DocumentCompiler {
                 .title(toAdd.getTitle())
                 .snippet(toAdd.getSnippet()));
         Log.d("Markers", "Made new bar marker");
-        markers.put(name, toAdd); //TODO might cause issues as name might not be unique
+        mMarkers.put(name, toAdd); //TODO might cause issues as name might not be unique
     }
 
     public void addDeal(final DocumentSnapshot documentSnapshot){
@@ -53,14 +50,14 @@ public class DocumentCompiler {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 DocumentSnapshot docSnap = barRefTask.getResult();
-                if(markers.containsKey(docSnap.getString("name"))) {
-                    Marker toEdit  = markers.get(docSnap.getString("name"));
+                if(mMarkers.containsKey(docSnap.getString("name"))) {
+                    Marker toEdit  = mMarkers.get(docSnap.getString("name"));
                     //TODO edit marker to include new deal and replace in HashMap
                     dealToString parse = new dealToString();
                     toEdit.addToSnippet( System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
                     Log.d("Markers", "Adding string to marker: " + toEdit.getSnippet());
-                    markers.remove(docSnap.getString("name"));
-                    markers.put(docSnap.getString("name"), toEdit);
+                    mMarkers.remove(docSnap.getString("name"));
+                    mMarkers.put(docSnap.getString("name"), toEdit);
                     mMap.addMarker(new MarkerOptions()
                             .position(toEdit.getPosition())
                             .title(toEdit.getTitle())
@@ -79,8 +76,8 @@ public class DocumentCompiler {
                         .position(toAdd.getPosition())
                         .title(toAdd.getTitle())
                         .snippet(toAdd.getSnippet()));
-                markers.put(docSnap.getString("name"), toAdd);
-                Log.d("Markers", "Deal has " + markers.size());
+                mMarkers.put(docSnap.getString("name"), toAdd);
+                Log.d("Markers", "Deal has " + mMarkers.size());
             }
         });
     }
