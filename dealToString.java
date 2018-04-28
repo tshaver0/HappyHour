@@ -4,6 +4,11 @@ import android.util.Log;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 /**
  * Created by tyler on 4/16/2018.
  */
@@ -21,48 +26,27 @@ public class dealToString {
     }
 
     public String timeToString(double time){
-        if(time >= 1300 ){
-            String toReturn = Double.toString(time);
-            String minutes = toReturn.substring(2,4);
-            String hours;
-            time =- 1200;
-            if(toReturn.length() == 3) {
-                hours = toReturn.substring(0, 2);
+        Double objTime = time;
+
+        try {
+            Date date = new SimpleDateFormat("hhmm").parse(String.format("%04d", objTime.intValue()));
+            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm");
+            String toReturn = sdf.format(date);
+            if (toReturn.charAt(0) == '0') {
+                toReturn = toReturn.substring(1);
             }
-            else {
-                hours = toReturn.substring(0, 1);
+
+            if(time >= 1200 && time < 2400) {
+                return toReturn + " PM";
             }
-            hours += ':';
-            return hours + minutes + " PM";
+            return toReturn + " AM";
         }
 
-        if (time < 1200) {
-
-            String toReturn = Double.toString(time);
-            String hours, minutes;
-            if(toReturn.length() == 4) {
-                hours = toReturn.substring(0, 2);
-                minutes = toReturn.substring(2, 4);
-            }
-            else if (toReturn.length() == 3){
-                hours = toReturn.substring(0, 1);
-                minutes = toReturn.substring(1, 3);
-            }
-            else  {
-                hours = "12";
-                minutes = toReturn;
-            }
-            Log.d("dealToString", "hours: " + hours + " minutes: " + minutes);
-            if(hours.charAt(0) == '0') {
-                hours.substring(1);
-            }
-            hours += ':';
-            return hours + minutes + " AM";
+        catch (ParseException e) {
+            Log.e("Error", "Parse error with " + Double.toString(time));
+            e.printStackTrace();
         }
-        String toReturn = Double.toString(time);
-        String hours = toReturn.substring(0,2);
-        String minutes = toReturn.substring(2,4);
-        hours += ':';
-        return hours + minutes + " PM";
+        return "Problem parsing time";
+
     }
 }
