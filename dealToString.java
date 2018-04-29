@@ -16,6 +16,11 @@ import java.util.Date;
 public class dealToString {
 
     public String dealToString(DocumentSnapshot docSnap) {
+        //make sure doc exists and has start time field in which case it will have others
+        if(!docSnap.exists()) {
+            Log.e("Firestore", "Doc does not exist");
+            return "";
+        }
         String toReturn = docSnap.getString("day of week");
         double startTime = docSnap.getDouble("start time");
         double endTime = docSnap.getDouble("end time");
@@ -47,6 +52,5 @@ public class dealToString {
             e.printStackTrace();
         }
         return "Problem parsing time";
-
     }
 }
