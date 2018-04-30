@@ -28,13 +28,18 @@ public class DocumentCompiler {
     }
 
     public void addBar(DocumentSnapshot documentSnapshot){
-        String name = documentSnapshot.get("name").toString();
+        App myApp = new App();
+        String name = documentSnapshot.getString(myApp.getContext().getString(R.string.barName));
         if(mMarkers.containsKey(name)){
             return;
         }
 
-        Marker toAdd = new Marker(new LatLng(documentSnapshot.getGeoPoint("location").getLatitude(), documentSnapshot.getGeoPoint("location").getLongitude()),
-                documentSnapshot.get("name").toString(), documentSnapshot.get("description").toString());
+        Marker toAdd = new Marker(new LatLng(
+                documentSnapshot.getGeoPoint(myApp.getContext().getString(R.string.barLocation)).getLatitude(),
+                documentSnapshot.getGeoPoint(myApp.getContext().getString(R.string.barLocation)).getLongitude()),
+                documentSnapshot.getString(myApp.getContext().getString(R.string.barName)),
+                documentSnapshot.getString(myApp.getContext().getString(R.string.barDescription)));
+
         mMap.addMarker(new MarkerOptions()
                 .position(toAdd.getPosition())
                 .title(toAdd.getTitle())
@@ -44,20 +49,26 @@ public class DocumentCompiler {
     }
 
     public void addDeal(final DocumentSnapshot documentSnapshot){
-        DocumentReference barRef = (DocumentReference) documentSnapshot.get("bar");
+        final App myApp = new App();
+        DocumentReference barRef = (DocumentReference) documentSnapshot.
+                get(myApp.getContext().getString(R.string.dealBarRef));
         final Task<DocumentSnapshot> barRefTask = barRef.get();
+
         barRefTask.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 DocumentSnapshot docSnap = barRefTask.getResult();
-                if(mMarkers.containsKey(docSnap.getString("name"))) {
-                    Marker toEdit  = mMarkers.get(docSnap.getString("name"));
+                if(mMarkers.containsKey(docSnap.getString(myApp.getContext().
+                        getString(R.string.barName)))) {
+                    Marker toEdit  = mMarkers.get(docSnap.getString(myApp.getContext().
+                            getString(R.string.barName)));
                     //TODO edit marker to include new deal and replace in HashMap
                     dealToString parse = new dealToString();
-                    toEdit.addToSnippet( System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
-                    Log.d("Markers", "Adding string to marker: " + toEdit.getSnippet());
-                    mMarkers.remove(docSnap.getString("name"));
-                    mMarkers.put(docSnap.getString("name"), toEdit);
+                    toEdit.addToSnippet( System.getProperty("line.separator") +
+                            parse.dealToString(documentSnapshot));
+
+                    mMarkers.remove(docSnap.getString(myApp.getContext().getString(R.string.barName)));
+                    mMarkers.put(docSnap.getString(myApp.getContext().getString(R.string.barName)), toEdit);
                     mMap.addMarker(new MarkerOptions()
                             .position(toEdit.getPosition())
                             .title(toEdit.getTitle())
@@ -65,18 +76,21 @@ public class DocumentCompiler {
                     Log.d("Markers", "Added deal to existing Marker");
                     return;
                 }
-                Log.e("Markers", "Error getting " + docSnap.contains("name"));
+                Marker toAdd = new Marker(
+                        new LatLng(docSnap.getGeoPoint(myApp.getContext().getString(R.string.barLocation)).getLatitude(),
+                                docSnap.getGeoPoint(myApp.getContext().getString(R.string.barLocation)).getLongitude()),
+                        docSnap.get(myApp.getContext().getString(R.string.barName)).toString(),
+                        docSnap.get(myApp.getContext().getString(R.string.barDescription)).toString());
 
-                Marker toAdd = new Marker(new LatLng(docSnap.getGeoPoint("location").getLatitude(), docSnap.getGeoPoint("location").getLongitude()),
-                        docSnap.get("name").toString(), docSnap.get("description").toString());
-                Log.d("Markers", "Added deal to new Marker");
                 dealToString parse = new dealToString();
                 toAdd.addToSnippet(System.getProperty("line.separator") + parse.dealToString(documentSnapshot));
+
                 mMap.addMarker(new MarkerOptions()
                         .position(toAdd.getPosition())
                         .title(toAdd.getTitle())
                         .snippet(toAdd.getSnippet()));
                 mMarkers.put(docSnap.getString("name"), toAdd);
+
                 Log.d("Markers", "Deal has " + mMarkers.size());
             }
         });

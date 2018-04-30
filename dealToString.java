@@ -1,5 +1,8 @@
 package com.example.tyler.happyhour;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -21,12 +24,14 @@ public class dealToString {
             Log.e("Firestore", "Doc does not exist");
             return "";
         }
-        String toReturn = docSnap.getString("day of week");
-        double startTime = docSnap.getDouble("start time");
-        double endTime = docSnap.getDouble("end time");
+        //custom class onyl used to get Application context so string.xml is accessible from this class
+        App myApp = new App();
+        String toReturn = docSnap.getString(myApp.getContext().getString(R.string.dealDay));
+        double startTime = docSnap.getDouble(myApp.getContext().getString(R.string.dealStartTime));
+        double endTime = docSnap.getDouble(myApp.getContext().getString(R.string.dealEndTime));
         toReturn = toReturn.substring(0,1).toUpperCase() + toReturn.substring(1); //capitalize first letter
         toReturn += ": " + timeToString(startTime) + " to " + timeToString(endTime);
-        toReturn += " - " + docSnap.getString("desc");
+        toReturn += " - " + docSnap.getString(myApp.getContext().getString(R.string.dealDescription));
         return toReturn;
     }
 
